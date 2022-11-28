@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:group_chat_app_firebase/pages/home_page.dart';
 import 'package:group_chat_app_firebase/services/auth_service.dart';
+import 'package:group_chat_app_firebase/services/database_service.dart';
 
 import '../helper/helper_functions.dart';
 
@@ -32,6 +35,23 @@ class _LoginState extends State<LoginPage> {
           .loginWithEmailAndPassword(email, password)
           .then((value) async {
         if (value == true) {
+          QuerySnapshot snapshot = await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid).gettingDataUser(email);
+          await HelperFunctions.saveUserLoggedInStatus(true);
+          await HelperFunctions.saveUserNameKey(snapshot.docs[0]['fullName']);
+          await HelperFunctions.saveUserEmailKey(email);
+
+          var snackBar = SnackBar(
+            content: Text(
+              'Đăng nhập thành công!',
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white),
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
           Navigator.of(context).push(MaterialPageRoute(
             builder: (context) => HomePage(),
           ));

@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-
 import '../helper/helper_functions.dart';
 import 'database_service.dart';
 
@@ -17,7 +16,6 @@ class AuthService {
       if (user != null) {
         // When create an user, uid will be created first.
         await DatabaseService(uid: user.uid).savingUserData(fullName, email);
-
         return true;
       }
     } on FirebaseAuthException catch (e) {
