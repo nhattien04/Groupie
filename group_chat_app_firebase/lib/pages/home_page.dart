@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:group_chat_app_firebase/helper/helper_functions.dart';
 import 'package:group_chat_app_firebase/pages/init_page.dart';
+import 'package:group_chat_app_firebase/pages/search_page.dart';
 import 'package:group_chat_app_firebase/services/auth_service.dart';
 import 'package:group_chat_app_firebase/services/database_service.dart';
+import 'package:group_chat_app_firebase/widgets/group_tile.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../providers/user_provider.dart';
@@ -25,11 +27,23 @@ class _HomePageState extends State<HomePage> {
   var uuid = Uuid();
   AuthService authService = AuthService();
   Stream? groups;
+  Stream? groupInformation;
+  Stream? allGroup;
+  bool _isLoading = false;
+  var recentMessage;
 
   @override
   void initState() {
     super.initState();
     gettingUserData();
+  }
+
+  getGroupId(String res) {
+    return res.substring(0, res.indexOf("_"));
+  }
+
+  getGroupName(String res) {
+    return res.substring(res.indexOf("_") + 1);
   }
 
   gettingUserData() async {
@@ -83,7 +97,17 @@ class _HomePageState extends State<HomePage> {
           if(snapshot.hasData) {
             if (snapshot.data['groups'] != null) {
               if (snapshot.data['groups'].length != 0) {
-                return Center(child: Text('List groups'));
+                return ListView.builder(
+                  itemCount: snapshot.data['groups'].length,
+                    itemBuilder: (context, index) {
+                    int reverseIndex = snapshot.data['groups'].length - index - 1;
+
+                    return GroupTile(
+                        userName: snapshot.data["fullName"],
+                        groupId: getGroupId(snapshot.data["groups"][reverseIndex]),
+                        groupName: getGroupName(snapshot.data["groups"][reverseIndex]),
+                    );
+                    },);
               }
               else {
                 return noGroupList();
@@ -118,6 +142,11 @@ class _HomePageState extends State<HomePage> {
         actions: [
           Column(
             children: [
+              _isLoading ? Container(
+                child: Center(
+                  child: CircularProgressIndicator(color: Colors.orange),
+                ),
+              ) :
               Container(
                 padding:
                 EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -168,7 +197,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               SizedBox(
-                                height: 10,
+                                height: 15,
                               ),
                               Row(
                                 mainAxisAlignment:
@@ -195,41 +224,49 @@ class _HomePageState extends State<HomePage> {
                                   SizedBox(
                                     width: 20,
                                   ),
-                                  Consumer<UserProvider>(
-                                    builder: (context, value, child) =>
-                                        Container(
-                                          width: 90,
-                                          child: ElevatedButton(
-                                            onPressed: () async {
-                                              final form =
-                                                  formKey.currentState;
-                                              if (form!.validate()) {
-                                                value.setUsername(
-                                                    groupNameController.text);
-                                                Navigator.of(context)
-                                                    .push(MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      GroupPage(
-                                                          userId: uuid.v1()),
-                                                ));
-                                                print('Tạo thành công!');
-                                              }
-                                            },
-                                            child: Text(
-                                              'Thêm',
+                                  Container(
+                                    width: 90,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        final form =
+                                            formKey.currentState;
+                                        if (form!.validate()) {
+                                          setState(() {
+                                            _isLoading = true;
+                                          });
+                                          DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid).createGroup(userName, FirebaseAuth.instance.currentUser!.uid, groupNameController.text).whenComplete(() => {
+                                            _isLoading = false
+                                          });
+                                          Navigator.pop(context);
+                                          groupNameController.text = '';
+                                          var snackBar = SnackBar(
+                                            content: Text(
+                                              'Tạo nhóm thành công!',
                                               style: TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.bold,
                                                   color: Colors.white),
                                             ),
-                                            style: ButtonStyle(
-                                              backgroundColor:
-                                              MaterialStatePropertyAll<
-                                                  Color>(Colors.green),
-                                            ),
-                                          ),
-                                        ),
-                                  ),
+                                            backgroundColor: Colors.green,
+                                            duration: Duration(seconds: 2),
+                                          );
+                                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                        }
+                                      },
+                                      child: Text(
+                                        'Thêm',
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                        MaterialStatePropertyAll<
+                                            Color>(Colors.green),
+                                      ),
+                                    ),
+                                  )
                                 ],
                               )
                             ],
@@ -238,9 +275,9 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(30))
+                    borderRadius: BorderRadius.all(Radius.circular(30))
                 ),
-              ),
+              )
             ],
           ),
         ],
@@ -252,10 +289,12 @@ class _HomePageState extends State<HomePage> {
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Đoạn chat'),
+        title: Text('Đoạn chat', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),),
         backgroundColor: Colors.orange,
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.search)),
+          IconButton(onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchPage(),));
+          }, icon: Icon(Icons.search)),
         ],
 
       ),
@@ -330,7 +369,9 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          showCreateGroupDialog(context);
+        },
         child: Icon(Icons.add,
           color: Colors.white,
         ),
