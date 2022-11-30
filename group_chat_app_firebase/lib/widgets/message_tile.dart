@@ -5,11 +5,14 @@ class MessageTile extends StatefulWidget {
   final String sender;
   final String message;
   final bool sentByMe;
+  final String time;
   const MessageTile(
       {Key? key,
         required this.sender,
         required this.message,
-        required this.sentByMe})
+        required this.sentByMe,
+        required this.time,
+      })
       : super(key: key);
 
   @override
@@ -62,10 +65,19 @@ class _MessageTileState extends State<MessageTile> {
                       fontWeight: FontWeight.bold,
                       color: Colors.white),
                 ),
+                SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  widget.time,
+                  style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white),
+                ),
               ],
             ),
           )
       ),
-    );;
+    );
   }
 }

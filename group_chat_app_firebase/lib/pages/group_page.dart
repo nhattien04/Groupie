@@ -64,7 +64,9 @@ class _GroupPageState extends State<GroupPage> {
                 return MessageTile(
                     sender: snapshot.data.docs[index]['sender'],
                     message: snapshot.data.docs[index]['message'],
-                    sentByMe: widget.userName == snapshot.data.docs[index]['sender']);
+                    sentByMe: widget.userName == snapshot.data.docs[index]['sender'],
+                    time: snapshot.data.docs[index]['time'].toString().substring(10, 16),
+                );
               },)
               : Container();
         },);
@@ -75,7 +77,7 @@ class _GroupPageState extends State<GroupPage> {
       Map<String, dynamic> sendMessageMap = {
         "message": msgController.text,
         "sender": widget.userName,
-        "time": DateTime.now().millisecondsSinceEpoch
+        "time": DateTime.now().toString()
       };
       DatabaseService().sendMessage(widget.groupId, sendMessageMap);
       setState(() {
