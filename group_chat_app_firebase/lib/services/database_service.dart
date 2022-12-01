@@ -23,7 +23,8 @@ class DatabaseService {
   }
 
   Future gettingDataUser(String email) async {
-    QuerySnapshot snapshot = await userCollection.where("email", isEqualTo: email).get();
+    QuerySnapshot snapshot =
+        await userCollection.where("email", isEqualTo: email).get();
     return snapshot;
   }
 
@@ -36,17 +37,21 @@ class DatabaseService {
   }
 
   Future getChats(String groupId) async {
-    return groupCollection.doc(groupId).collection("message").orderBy("time").snapshots();
+    return groupCollection
+        .doc(groupId)
+        .collection("message")
+        .orderBy("time")
+        .snapshots();
   }
 
-  Future sendMessage(String groupId, Map<String, dynamic> chatMessageData) async {
+  Future sendMessage(
+      String groupId, Map<String, dynamic> chatMessageData) async {
     groupCollection.doc(groupId).collection("message").add(chatMessageData);
     groupCollection.doc(groupId).update({
       "recentMessage": chatMessageData["message"],
       "recentMessageSender": chatMessageData["sender"],
       "recentMessageTime": chatMessageData["time"].toString()
     });
-
   }
 
   Future getGroupAdmin(String groupId) async {
@@ -73,7 +78,8 @@ class DatabaseService {
 
     DocumentReference userDocumentReference = userCollection.doc(uid);
     return userDocumentReference.update({
-      "groups": FieldValue.arrayUnion(["${groupDocumentReference.id}_$groupName"])
+      "groups":
+          FieldValue.arrayUnion(["${groupDocumentReference.id}_$groupName"])
     });
   }
 
@@ -81,20 +87,21 @@ class DatabaseService {
     return groupCollection.where("groupName", isEqualTo: name).get();
   }
 
-  Future<bool> isUserJoined(String userName, String groupId, String groupName) async {
+  Future<bool> isUserJoined(
+      String userName, String groupId, String groupName) async {
     DocumentReference userDocumentReference = userCollection.doc(uid);
     DocumentSnapshot documentSnapshot = await userDocumentReference.get();
 
     List<dynamic> groups = await documentSnapshot["groups"];
     if (groups.contains("${groupId}_$groupName")) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
 
-  Future toggleGroupJoin(String userName, String groupId, String groupName) async {
+  Future toggleGroupJoin(
+      String userName, String groupId, String groupName) async {
     DocumentReference userDocumentReference = userCollection.doc(uid);
     DocumentReference groupDocumentReference = groupCollection.doc(groupId);
     DocumentSnapshot userDocumentSnapshot = await userDocumentReference.get();
@@ -107,8 +114,7 @@ class DatabaseService {
       await groupDocumentReference.update({
         "members": FieldValue.arrayRemove(["${uid}_$userName"])
       });
-    }
-    else {
+    } else {
       await userDocumentReference.update({
         "groups": FieldValue.arrayUnion(["${groupId}_$groupName"])
       });

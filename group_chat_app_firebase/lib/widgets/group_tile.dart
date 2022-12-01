@@ -8,7 +8,11 @@ class GroupTile extends StatefulWidget {
   final String groupId;
   final String groupName;
 
-  const GroupTile({Key? key, required this.userName, required this.groupId, required this.groupName});
+  const GroupTile(
+      {Key? key,
+      required this.userName,
+      required this.groupId,
+      required this.groupName});
 
   @override
   State<StatefulWidget> createState() {
@@ -21,7 +25,12 @@ class _GroupTileState extends State<GroupTile> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => GroupPage(userName: widget.userName, groupId: widget.groupId, groupName: widget.groupName),));
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => GroupPage(
+              userName: widget.userName,
+              groupId: widget.groupId,
+              groupName: widget.groupName),
+        ));
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
@@ -29,13 +38,17 @@ class _GroupTileState extends State<GroupTile> {
           leading: CircleAvatar(
             radius: 30,
             backgroundColor: Colors.green,
-            child: Text(widget.groupName.substring(0, 1), style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white
-            )),
+            child: Text(widget.groupName.substring(0, 1),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white)),
           ),
-          title: Text(widget.groupName, style: TextStyle(
-              fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black
-          ),),
+          title: Text(
+            widget.groupName,
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
           subtitle: Text(''),
         ),
       ),
